@@ -1,5 +1,7 @@
 volumes:
   postgres_data:
+  mailplit_data:
+  app_logs:
 
 
 networks:
@@ -8,6 +10,55 @@ networks:
     driver: bridge
 
 services:
+  traefik:
+    image: docker.io/traefik:v3.2
+    restart: unless-stopped
+    container_name: traefik
+    command:
+      - "--providers.docker=true"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker/local/traefik/conf/traefik.yml:/etc/traefik/traefik.yml
+    networks:
+      - nextgen-local-network
+
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/local/fastapi/Dockerfile
+    container_name: api
+    volumes:
+      - ./src/app/:/src/app/:delegated
+      - app_logs:/src/app/logs:delegated
+    command: /start.sh
+    env_file:
+      - ./envs/.env.local
+    networks:
+      - nextgen-local-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.routers.api.rule=Host(`api.localhost`)"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+
+  mailplit:
+    image: docker.io/axllent/mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    volumes:
+      - mailplit_data:/data
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_DATA_FILE: /data/mailplit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    networks:
+      - nextgen-local-network
+
   postgres:
     build:
       context: .
