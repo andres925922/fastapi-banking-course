@@ -1,0 +1,8 @@
+{
+    "venvPath": "./.venv",
+    "extraPaths": [
+        "./src"
+    ],
+    "typeCheckingMode": "basic",
+    "reportMissingModuleDocstring": "none"
+}
