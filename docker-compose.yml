@@ -1,7 +1,10 @@
 volumes:
   postgres_data:
-  mailplit_data:
+  mailpit_data:
   app_logs:
+  redis_data:
+  rabbitmq_data:
+  flower_data:
 
 
 networks:
@@ -25,7 +28,7 @@ services:
     networks:
       - nextgen-local-network
 
-  api:
+  api: &api
     build:
       context: .
       dockerfile: ./docker/local/fastapi/Dockerfile
@@ -34,6 +37,11 @@ services:
       - ./src/app/:/src/app/:delegated
       - app_logs:/src/app/logs:delegated
     command: /start.sh
+    depends_on:
+      - postgres
+      - mailpit
+      - redis
+      - rabbitmq
     env_file:
       - ./envs/.env.local
     networks:
@@ -44,16 +52,17 @@ services:
       - "traefik.http.routers.api.rule=Host(`api.localhost`)"
       - "traefik.http.services.api.loadbalancer.server.port=8000"
 
-  mailplit:
+  mailpit:
     image: docker.io/axllent/mailpit
     ports:
       - "8025:8025"
       - "1025:1025"
     volumes:
-      - mailplit_data:/data
+      - mailpit_data:/data
+    container_name: mailpit
     environment:
       MP_MAX_MESSAGES: 500
-      MP_DATA_FILE: /data/mailplit.db
+      MP_DATA_FILE: /data/mailpit.db
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
     networks:
@@ -72,3 +81,64 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - nextgen-local-network
+
+  redis:
+    image: docker.io/redis:7.0-alpine
+    command: redis-server --appendonly yes
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - nextgen-local-network
+
+  rabbitmq:
+    image: docker.io/rabbitmq:3.13-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - nextgen-local-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rabbitmq.entrypoints=web"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.localhost`)"
+      # - "traefik.http.routers.rabbitmq.service=rabbitmq-service"
+      - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
+
+  celery_worker:
+    <<: *api
+    container_name: celery_worker
+    ports: []
+    command: /worker_start.sh
+
+  flower:
+    <<: *api
+    container_name: flower
+    ports:
+      - "5555:5555"
+    command: /flower_start.sh
+    volumes:
+      - flower_data:/data
+    depends_on:
+      - rabbitmq
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.flower.entrypoints=web"
+      - "traefik.http.routers.flower.rule=Host(`flower.localhost`)"
+      # - "traefik.http.routers.flower.service=flower-service"
+      - "traefik.http.services.flower.loadbalancer.server.port=5555"
+
+  celery_beat:
+    <<: *api
+    container_name: celery_beat
+    ports: []
+    command: /beat_start.sh
+    depends_on:
+      - rabbitmq
+      - redis

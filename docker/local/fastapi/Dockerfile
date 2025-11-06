@@ -63,8 +63,12 @@ COPY --chown=${APP_USER}:${APP_GROUP} ./src/app ${APP_HOME}
 # --- Copy startup scripts ---
 COPY --chown=${APP_USER}:${APP_GROUP} ./docker/local/fastapi/scripts/entrypoint.sh /entrypoint.sh
 COPY --chown=${APP_USER}:${APP_GROUP} ./docker/local/fastapi/scripts/start.sh /start.sh
-RUN sed -i 's/\r$//g' /entrypoint.sh /start.sh \
-    && chmod +x /entrypoint.sh /start.sh
+COPY --chown=${APP_USER}:${APP_GROUP} ./docker/local/fastapi/scripts/celery/worker_start.sh /worker_start.sh
+COPY --chown=${APP_USER}:${APP_GROUP} ./docker/local/fastapi/scripts/celery/flower_start.sh /flower_start.sh
+COPY --chown=${APP_USER}:${APP_GROUP} ./docker/local/fastapi/scripts/celery/beat_start.sh /beat_start.sh
+
+RUN sed -i 's/\r$//g' /*.sh \
+    && chmod +x /*.sh
 
 # --- Logging setup (ensure correct owner after COPY) ---
 RUN rm -rf ${APP_HOME}/logs \
@@ -72,7 +76,7 @@ RUN rm -rf ${APP_HOME}/logs \
     && touch ${APP_HOME}/logs/debug.log \
     && touch ${APP_HOME}/logs/error.log \
     && chown -R ${APP_USER}:${APP_GROUP} ${APP_HOME}/logs \
-    && chmod -R 775 ${APP_HOME}/logs
+    && chmod -R 775 ${APP_HOME}/logs 
 
 # --- Switch to non-root user ---
 USER ${APP_USER}
