@@ -1,5 +1,6 @@
 
 from datetime import datetime, timezone
+from pydantic import computed_field
 from sqlmodel import Field, Column
 from sqlalchemy.dialects import postgresql as pg
 from core.domain.data_layers.model_mixins import TimestampMixin, SoftDeletedMixin, BaseModelMixin
@@ -17,6 +18,11 @@ class User(BaseUserSchema, TimestampMixin, SoftDeletedMixin, BaseModelMixin, tab
         default=None, 
         sa_column=Column(pg.TIMESTAMP(timezone=True))
     )
+
+    @computed_field
+    @property
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.middle_name if self.middle_name else ''} {self.last_name}"
 
     def has_role(self, role: RoleChoicesSchema) -> bool:
         return self.role.value == role.value

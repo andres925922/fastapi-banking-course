@@ -1,7 +1,7 @@
 import uuid
 from enum import Enum
 
-from pydantic import EmailStr, field_validator, computed_field
+from pydantic import EmailStr, field_validator
 from sqlmodel import SQLModel, Field
 
 from core.domain.exceptions import InvalidPasswordException
@@ -48,18 +48,12 @@ class BaseUserSchema(SQLModel):
     first_name: str = Field(max_length=30)
     middle_name: str | None = Field(max_length=30, default=None)
     last_name: str = Field(max_length=30)
-    id_no: int = Field(unique=True, gt=0)
     is_active: bool = False
     is_superuser: bool = False
     security_question: SecurityQuestionsSchema = Field(max_length=30)
     security_answer: str = Field(max_length=30)
     account_status: AccountStatusSchema = Field(default=AccountStatusSchema.INACTIVE)
     role: RoleChoicesSchema = Field(default=RoleChoicesSchema.CUSTOMER)
-
-    @computed_field
-    @property
-    def full_name(self) -> str:
-        return f"{self.first_name} {self.middle_name if self.middle_name else ''} {self.last_name}"
 
 
 
