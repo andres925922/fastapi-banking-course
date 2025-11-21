@@ -48,6 +48,7 @@ class BaseUserSchema(SQLModel):
     first_name: str = Field(max_length=30)
     middle_name: str | None = Field(max_length=30, default=None)
     last_name: str = Field(max_length=30)
+    id_no: int = Field(unique=True, gt=0)
     is_active: bool = False
     is_superuser: bool = False
     security_question: SecurityQuestionsSchema = Field(max_length=30)

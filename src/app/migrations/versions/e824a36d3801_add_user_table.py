@@ -32,6 +32,7 @@ def upgrade() -> None:
     sa.Column('first_name', sqltypes.AutoString(length=30), nullable=False),
     sa.Column('middle_name', sqltypes.AutoString(length=30), nullable=True),
     sa.Column('last_name', sqltypes.AutoString(length=30), nullable=False),
+    sa.Column('id_no', sa.Integer(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('is_superuser', sa.Boolean(), nullable=False),
     sa.Column('security_question', sa.Enum('MOTHERS_MAIDEN_NAME', 'FIRST_PET_NAME', 'FAVORITE_TEACHER', 'BIRTH_CITY', 'FAVORITE_BOOK', name='securityquestionsschema'), nullable=False),
@@ -44,6 +45,7 @@ def upgrade() -> None:
     sa.Column('otp', sqltypes.AutoString(length=6), nullable=False),
     sa.Column('otp_expiry_at', postgresql.TIMESTAMP(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('id_no'),
     sa.UniqueConstraint('username')
     )
     op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)

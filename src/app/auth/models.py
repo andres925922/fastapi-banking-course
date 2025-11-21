@@ -23,6 +23,11 @@ class User(BaseUserSchema, TimestampMixin, SoftDeletedMixin, BaseModelMixin, tab
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.middle_name if self.middle_name else ''} {self.last_name}"
+    
+    @computed_field
+    @property
+    def is_deleted(self) -> bool:
+        return self.deleted_at is not None
 
     def has_role(self, role: RoleChoicesSchema) -> bool:
         return self.role.value == role.value
