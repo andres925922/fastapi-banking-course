@@ -17,7 +17,7 @@ logger.add(
     serialize=True,
     # format=FORMAT,
     level="DEBUG" if settings.ENVIRONMENT == "development" else "INFO",
-    filter=lambda record: record["level"].no >= logger.level("WARNING").no,
+    filter=lambda record: record["level"].no <= logger.level("WARNING").no,
     rotation="10 MB",
     retention="10 days",
     compression="zip",

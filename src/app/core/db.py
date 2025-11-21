@@ -8,6 +8,7 @@ from sqlalchemy.pool import AsyncAdaptedQueuePool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from core.settings import settings
 from core.logger import get_logger
+from core.model_registry import load_models
 
 logger = get_logger()
 
@@ -69,6 +70,9 @@ async def get_db_dependency() -> AsyncGenerator[AsyncSession, None]:
 
 async def init_db() -> None:
     try:
+        load_models()
+        logger.info("Model registry loaded successfully")
+        
         max_tries = 3
         retry_delay = 5  # seconds
 

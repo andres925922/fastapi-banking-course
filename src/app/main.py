@@ -3,6 +3,7 @@ from fastapi import FastAPI
 
 from core.db import init_db
 from core.settings import settings
+from core.exception_handler import register_exception_handlers
 from api.main import api_router
 
 
@@ -22,6 +23,7 @@ def create_app() -> FastAPI:
         redoc_url=f"{settings.API_V1_STR}/redoc",
         openapi_url=f"{settings.API_V1_STR}/openapi.json",
     )
+    register_exception_handlers(app)
 
     app.include_router(api_router, prefix=settings.API_V1_STR)
 
