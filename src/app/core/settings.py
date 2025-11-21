@@ -1,8 +1,10 @@
 from smtplib import SMTP
 from typing import Literal
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    
     ENVIRONMENT: Literal["development", "staging", "production"] = "development"
 
     PROJECT_NAME: str = ""
@@ -26,10 +28,10 @@ class Settings(BaseSettings):
     RABBITMQ_USER: str = "guest"
     RABBITMQ_PASSWORD: str = "guest"
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        extra = "ignore"
+    # class Config:
+    #     env_file = ".env"
+    #     env_file_encoding = "utf-8"
+    #     extra = "ignore"
 
 
 settings = Settings()
