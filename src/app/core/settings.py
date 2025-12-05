@@ -28,10 +28,11 @@ class Settings(BaseSettings):
     RABBITMQ_USER: str = "guest"
     RABBITMQ_PASSWORD: str = "guest"
     
-    # class Config:
-    #     env_file = ".env"
-    #     env_file_encoding = "utf-8"
-    #     extra = "ignore"
+    # login user releated settings
+    OTP_EXPIRE_MINUTES: int = 2 if ENVIRONMENT == "development" else 5
+    LOGIN_ATTEMPTS_LIMIT: int = 3
+    LOCKOUT_DURATION_MINUTES: int = 2 if ENVIRONMENT == "development" else 5
+    ACTIVATION_EXPIRATION_MINUTES: int = 2 if ENVIRONMENT == "development" else 5
 
 
 settings = Settings()
